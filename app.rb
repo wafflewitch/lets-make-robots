@@ -1,3 +1,6 @@
+require 'net/http'
+require 'uri'
+
 TYPES = { 
   UNIPEDAL: 'Unipedal',
   BIPEDAL: 'Bipedal',
@@ -80,7 +83,8 @@ class App
     puts "5. Create a task."
     puts "6. Delete a task."
     puts "7. See a robot dance battle."
-    puts "8. Leave Bot-o-Mat."
+    puts "8. Hear a joke."
+    puts "9. Leave Bot-o-Mat."
     puts "-----------------------------"
   end
   
@@ -95,7 +99,8 @@ class App
     when 5 then create_task
     when 6 then delete_task
     when 7 then dance_battle
-    when 8 then goodbye_message
+    when 8 then hear_joke
+    when 9 then goodbye_message
     else
       puts "\n Sorry, we can't handle that request. Please make another selection."
     end
@@ -362,6 +367,27 @@ def compare_robot_scores(robot_one, robot_two)
   robot_one.score > robot_two.score
 end
 
+def hear_joke
+  puts "\n Ok! Let's assign some tasks to a robot and get some work done!"
+  input = ask_user_for_name_for_joke
+  # Note:
+  # `input` is a string provided by the user.
+  # It should be a robot name.
+  robot = find_robot_by_name(input)
+  if robot.nil?
+    puts "\n Sorry, we don't have a robot with that name. Please try again."
+    input = ask_user_for_name_for_joke
+  end
+
+  robot.tell_joke
+  display_robots
+end
+
+def ask_user_for_name_for_joke
+  puts "\n Which robot would you like to tell you a joke?"
+  name = gets.chomp
+end
+
 class Robot
   attr_accessor :type, :name, :assigned_tasks, :completed_tasks, :score
   def initialize(type, name)
@@ -411,6 +437,23 @@ class Robot
     end
 
     @assigned_tasks.empty? ? (puts "\n All tasks completed.") : (puts "Error!")
+  end
+
+  def tell_joke
+    uri = URI.parse("https://sv443.net/jokeapi/v2/joke/Programming?blacklistFlags=nsfw,religious,political,racist,sexist&format=txt&type=single")
+    joke = Net::HTTP.get_response(uri).body
+
+    puts "\n Selecting a joke..."
+    sleep(0.5)
+    puts "\n OK, listen to this!"
+    sleep(0.5)
+    puts "\n -----------------------------"
+    puts "\n #{joke}"
+    puts "\n -----------------------------"
+    sleep(0.5)
+    puts "\n HA. HA. HA. That was funny."
+
+    @score += joke.length * 100
   end
 end
 
